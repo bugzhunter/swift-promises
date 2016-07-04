@@ -5,7 +5,6 @@ target 'SwiftPromises_Example' do
 
   target 'SwiftPromises_Tests' do
     inherit! :search_paths
-
-    
+    pod 'SwiftPromises', :path => '../'
   end
 end

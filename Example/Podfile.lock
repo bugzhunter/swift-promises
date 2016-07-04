@@ -1,0 +1,16 @@
+PODS:
+  - SwiftPromises (0.1.0)
+
+DEPENDENCIES:
+  - SwiftPromises (from `../`)
+
+EXTERNAL SOURCES:
+  SwiftPromises:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  SwiftPromises: cd27ecd7367a89c5152c7c1bcf9d8f39c542f0df
+
+PODFILE CHECKSUM: f6c63127af95a241002bdf7b1b049366a45ab32b
+
+COCOAPODS: 1.0.1
