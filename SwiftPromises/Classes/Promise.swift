@@ -46,12 +46,16 @@ public class Promise<T> {
     }
     
     private func resolve(result: T) {
+        guard state == .pending else { return }
+        
         state = .resolved
         self.result = result
         self.onFulfiled?(result)
     }
     
     private func reject(error: ErrorType) {
+        guard state == .pending else { return }
+        
         state = .rejected
         self.error = error
         self.onRejected?(error)

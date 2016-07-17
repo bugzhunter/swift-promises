@@ -84,6 +84,34 @@ class PromiseTests: XCTestCase {
         waitForExpectationsWithTimeout(1, handler: nil)
     }
     
+    func testRejectAfterResolve() {
+        let testResult: Int = 1
+        let promise = Promise<Int>() { (resolve, reject) in
+            dispatchAfter(0.1) {
+                resolve(testResult)
+            }
+            dispatchAfter(0.2) {
+                reject(NSError(domain: "123", code: 123, userInfo: nil))
+            }
+        }
+        
+        var onFulfiledCalled = false
+        var onRejectedCalled = false
+        promise.then(onFulfiled: { result in
+                onFulfiledCalled = true
+            }, onRejected: { error in
+                onRejectedCalled = true
+        })
+        
+        let expectation = expectationWithDescription("")
+        dispatchAfter(0.3) { 
+            expectation.fulfill()
+            XCTAssertTrue(onFulfiledCalled, "onFulfiled should be called")
+            XCTAssertFalse(onRejectedCalled, "onRejected should not be called")
+        }
+        waitForExpectationsWithTimeout(1, handler: nil)
+    }
+    
 }
 
 func dispatchAfter(delayInSeconds: Float, block: () -> Void) {
