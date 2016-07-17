@@ -7,19 +7,23 @@ public enum PromiseState {
 public class Promise<T> {
     
     public typealias ResolveCallback = (T) -> Void
-    public typealias RejectCallback = (NSError) -> Void
+    public typealias RejectCallback = (ErrorType) -> Void
     
     private var onFulfiled: ResolveCallback?
     private var onRejected: RejectCallback?
     
     private var state = PromiseState.pending
     private var result: T?
-    private var error: NSError?
+    private var error: ErrorType?
     
-    public init(body: (resolve: ResolveCallback, reject: RejectCallback) -> Void) {
-        //TODO: support exception throw inside body
-        
-        body(resolve: { self.resolve($0) }, reject: { self.reject($0) })
+    public init(body: (resolve: ResolveCallback, reject: RejectCallback) throws -> Void) {
+        do {
+            try body(resolve: { self.resolve($0) }, reject: { self.reject($0) })
+        }
+        catch {
+            self.error = error
+            self.reject(error)
+        }
     }
     
     public func then(onFulfiled onFulfiled: ResolveCallback? = nil, onRejected: RejectCallback? = nil) {
@@ -34,8 +38,11 @@ public class Promise<T> {
         }
     }
     
-    public func `catch`(onRejected: RejectCallback) {
+    public func error(onRejected: RejectCallback) {
         self.onRejected = onRejected
+        if let error = error where state == .rejected {
+            self.onRejected?(error)
+        }
     }
     
     private func resolve(result: T) {
@@ -44,7 +51,7 @@ public class Promise<T> {
         self.onFulfiled?(result)
     }
     
-    private func reject(error: NSError) {
+    private func reject(error: ErrorType) {
         state = .rejected
         self.error = error
         self.onRejected?(error)

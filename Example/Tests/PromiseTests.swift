@@ -12,39 +12,76 @@ class PromiseTests: XCTestCase {
     }
     
     func testDispatchAfter() {
-        let expectation = expectationWithDescription("testDispatchAfter")
+        let expectation = expectationWithDescription("")
         dispatchAfter(0.1) {
             expectation.fulfill()
         }
         waitForExpectationsWithTimeout(1, handler: nil)
     }
     
-    func testSimpleThen() {
+    func testAsyncThen() {
         let testResult: Int = 1
-        let expectation = expectationWithDescription("testDispatchAfter")
-        let promise = Promise<Int>() {resolve, reject in
+        let expectation = expectationWithDescription("")
+        let promise = Promise<Int>() { (resolve, reject) in
             dispatchAfter(0.1) {
                 resolve(testResult)
             }
         }
-        promise.then(onFulfiled: {result in
+        promise.then(onFulfiled: { result in
             expectation.fulfill()
             XCTAssertEqual(result, testResult)
         })
         waitForExpectationsWithTimeout(1, handler: nil)
     }
     
-    func testSyncPromise() {
+    func testSyncThen() {
         let testResult: Int = 1
-        let promise = Promise<Int>() { resolve, reject in
+        let promise = Promise<Int>() { (resolve, reject) in
             resolve(testResult)
         }
         var wasCalled = false
-        promise.then(onFulfiled: {result in
+        promise.then(onFulfiled: { result in
             XCTAssertEqual(result, testResult)
             wasCalled = true
         })
         XCTAssertTrue(wasCalled)
+    }
+    
+    func testAsyncReject() {
+        let expectation = expectationWithDescription("")
+        let promise = Promise<Int>() { (resolve, reject) in
+            dispatchAfter(0.1) {
+                reject(NSError(domain: "123", code: 123, userInfo: nil))
+            }
+        }
+        promise.then(onRejected: { error in
+            expectation.fulfill()
+        })
+        waitForExpectationsWithTimeout(1, handler: nil)
+    }
+    
+    func testCatchOnAsyncReject() {
+        let expectation = expectationWithDescription("")
+        let promise = Promise<Int>() { (resolve, reject) in
+            dispatchAfter(0.1) {
+                reject(NSError(domain: "123", code: 123, userInfo: nil))
+            }
+        }
+        promise.error({ error in
+            expectation.fulfill()
+        })
+        waitForExpectationsWithTimeout(1, handler: nil)
+    }
+    
+    func testCatchOnSyncThrow() {
+        let expectation = expectationWithDescription("")
+        let promise = Promise<Int>() { (resolve, reject) in
+            throw NSError(domain: "123", code: 123, userInfo: nil)
+        }
+        promise.error({ error in
+            expectation.fulfill()
+        })
+        waitForExpectationsWithTimeout(1, handler: nil)
     }
     
 }
